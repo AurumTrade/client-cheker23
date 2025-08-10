@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>AurumTrade</title>
     <style>
         body {
@@ -10,21 +10,36 @@
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #0b0e11;
+            color: #f0b90b;
         }
-
-        /* Общий стиль заголовка */
         .header {
             font-size: 1.2rem;
             font-weight: bold;
             color: #f0b90b;
             padding: 15px 20px;
-            position: absolute;
-            top: 0;
-            left: 0;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-
-        /* Экран входа */
-        .login-screen {
+        .header .title {
+            user-select: none;
+        }
+        .header .profile-btn {
+            cursor: pointer;
+            background-color: #f0b90b;
+            color: #0b0e11;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 15px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        .header .profile-btn:hover {
+            background-color: #d9a308;
+        }
+        /* Экраны */
+        #loginScreen, #workScreen {
             height: 100vh;
             background-color: #0b0e11;
             display: flex;
@@ -33,6 +48,53 @@
             flex-direction: column;
             color: white;
         }
+        #loginScreen {
+            display: flex;
+        }
+        #workScreen {
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+        }
+        /* Вкладки */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .tab {
+            cursor: pointer;
+            padding: 10px 20px;
+            background-color: #1e2329;
+            border-radius: 8px 8px 0 0;
+            border: 1px solid #f0b90b;
+            border-bottom: none;
+            color: #f0b90b;
+            font-weight: bold;
+            user-select: none;
+            transition: background-color 0.3s ease;
+        }
+        .tab.active {
+            background-color: #f0b90b;
+            color: #0b0e11;
+        }
+        .tab:hover:not(.active) {
+            background-color: #2a2f35;
+        }
+        .tab-content {
+            background-color: #1e2329;
+            padding: 20px;
+            border: 1px solid #f0b90b;
+            border-radius: 0 8px 8px 8px;
+            width: 600px;
+            max-width: 90vw;
+            color: #f0b90b;
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        /* Форма логина */
         .login-box {
             background-color: #1e2329;
             padding: 30px;
@@ -66,23 +128,7 @@
         .login-box button:hover {
             background-color: #d9a308;
         }
-
-        /* Рабочая зона */
-        .work-screen {
-            height: 100vh;
-            background-color: #0b0e11;
-            color: #f0b90b;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-        }
-        .main-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
+        /* Проверка ников */
         .status-message {
             font-size: 1.4rem;
             margin-bottom: 10px;
@@ -139,124 +185,411 @@
             width: 100%;
             max-height: 200px;
             overflow-y: auto;
+            color: #f0b90b;
+        }
+        /* Отчеты */
+        .report-form label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .report-form input[type="date"],
+        .report-form input[type="number"],
+        .report-form input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            font-size: 1rem;
+            border-radius: 6px;
+            border: 1px solid #f0b90b;
+            background-color: #0b0e11;
+            color: white;
+            margin-top: 5px;
+        }
+        .report-form button {
+            margin-top: 15px;
+            background-color: #f0b90b;
+            color: #0b0e11;
+            border: none;
+            padding: 12px 20px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            width: 100%;
+        }
+        .report-form button:hover {
+            background-color: #d9a308;
+        }
+        .report-list {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: #1e2329;
+            border-radius: 8px;
+            padding: 10px;
+            color: #f0b90b;
+            font-size: 0.95rem;
+            width: 600px;
+            max-width: 90vw;
+        }
+        .report-list table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .report-list th, .report-list td {
+            border: 1px solid #f0b90b;
+            padding: 6px 10px;
+            text-align: center;
+        }
+        .report-list th {
+            background-color: #f0b90b;
+            color: #0b0e11;
+        }
+        /* Ошибки */
+        .error-message {
+            color: #f44336;
+            margin-top: 8px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-<!-- Экран входа -->
-<div id="loginScreen" class="login-screen">
-    <div class="header">AurumTrade</div>
+<div class="header">
+    <div class="title">AurumTrade</div>
+    <button id="profileBtn" class="profile-btn" style="display:none">Личный кабинет</button>
+</div>
+
+<div id="loginScreen">
     <div class="login-box">
-        <form id="loginForm">
-            <input type="text" id="username" placeholder="Логин" required>
-            <input type="password" id="password" placeholder="Пароль" required>
-            <button type="submit">Войти</button>
-        </form>
+        <h2>Вход в систему</h2>
+        <input id="loginInput" type="text" placeholder="Логин" />
+        <input id="passwordInput" type="password" placeholder="Пароль" />
+        <button id="loginBtn">Войти</button>
+        <div id="loginError" class="error-message"></div>
     </div>
 </div>
 
-<!-- Рабочая зона -->
-<div id="workScreen" class="work-screen" style="display:none;">
-    <div class="header">AurumTrade</div>
-    <div class="main-area">
-        <div id="statusMessage" class="status-message"></div>
-        <input type="text" id="nickname" class="nickname-input" placeholder="Введите ник">
+<div id="workScreen" style="display:none; flex-direction: column; align-items: center;">
+
+    <div class="tabs">
+        <div id="tabCheck" class="tab active">Проверка ников</div>
+        <div id="tabReports" class="tab">Отчеты</div>
+    </div>
+
+    <div id="tabCheckContent" class="tab-content active">
+        <div class="status-message">
+            <span id="statusText">Введите ник</span>
+        </div>
+        <input id="nickInput" type="text" class="nickname-input" placeholder="Введите никнейм" />
         <div class="buttons">
             <button id="checkBtn" class="btn btn-check">Проверить</button>
             <button id="historyBtn" class="btn btn-history">История</button>
         </div>
-        <div id="history" class="history-box" style="display:none;"></div>
+        <div id="historyBox" class="history-box" style="display:none;"></div>
     </div>
+
+    <div id="tabReportsContent" class="tab-content">
+        <form id="reportForm" class="report-form" autocomplete="off">
+            <label for="dateInput">Дата</label>
+            <input id="dateInput" name="date" type="date" max="" required />
+            <label for="aktivInput">Актив</label>
+            <input id="aktivInput" name="aktiv" type="number" min="0" required />
+            <label for="novyeInput">Новые</label>
+            <input id="novyeInput" name="novye" type="number" min="0" required />
+            <label for="vbrosyInput">Вбросы</label>
+            <input id="vbrosyInput" name="vbrosy" type="number" min="0" required />
+            <label for="predlogiInput">Предлоги</label>
+            <input id="predlogiInput" name="predlogi" type="number" min="0" required />
+            <label for="soglasyInput">Согласы</label>
+            <input id="soglasyInput" name="soglasy" type="number" min="0" required />
+            <label for="lidiInput">Лиды</label>
+            <input id="lidiInput" name="lidi" type="number" min="0" required />
+            <label for="depozityInput">Депозиты</label>
+            <input id="depozityInput" name="depozity" type="number" min="0" required />
+            <label for="managerInput">Менеджер</label>
+            <input id="managerInput" name="manager" type="text" required />
+            <button type="submit">Отправить</button>
+            <div id="reportError" class="error-message"></div>
+            <div id="reportSuccess" style="color:#4CAF50; margin-top: 8px; font-weight: bold;"></div>
+        </form>
+        <div id="reportList" class="report-list" style="display:none;">
+            <h3>Отчеты</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Менеджер</th>
+                        <th>Актив</th>
+                        <th>Новые</th>
+                        <th>Вбросы</th>
+                        <th>Предлоги</th>
+                        <th>Согласы</th>
+                        <th>Лиды</th>
+                        <th>Депозиты</th>
+                        <th>Время отправки</th>
+                    </tr>
+                </thead>
+                <tbody id="reportTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
 </div>
 
 <script>
-    const loginScreen = document.getElementById("loginScreen");
-    const workScreen = document.getElementById("workScreen");
-    const historyBox = document.getElementById("history");
-    const statusMessage = document.getElementById("statusMessage");
-    const nicknameInput = document.getElementById("nickname");
+    let accessToken = null;
+    let currentUser = null;
 
-    function setStatusMessage(nickname, status) {
-        if (status.includes("Ник занят")) {
-            statusMessage.innerHTML = `<span class="status-icon" style="color:red;">❌</span><span style="color:red;">${nickname}: ${status}</span>`;
-        } else {
-            statusMessage.innerHTML = `<span class="status-icon" style="color:limegreen;">✅</span><span style="color:limegreen;">${nickname}: ${status}</span>`;
-        }
+    const loginScreen = document.getElementById('loginScreen');
+    const workScreen = document.getElementById('workScreen');
+    const loginBtn = document.getElementById('loginBtn');
+    const loginInput = document.getElementById('loginInput');
+    const passwordInput = document.getElementById('passwordInput');
+    const loginError = document.getElementById('loginError');
+    const profileBtn = document.getElementById('profileBtn');
+
+    // Для проверки ников
+    const nickInput = document.getElementById('nickInput');
+    const checkBtn = document.getElementById('checkBtn');
+    const historyBtn = document.getElementById('historyBtn');
+    const statusText = document.getElementById('statusText');
+    const historyBox = document.getElementById('historyBox');
+
+    // Для отчетов
+    const tabCheck = document.getElementById('tabCheck');
+    const tabReports = document.getElementById('tabReports');
+    const tabCheckContent = document.getElementById('tabCheckContent');
+    const tabReportsContent = document.getElementById('tabReportsContent');
+
+    const reportForm = document.getElementById('reportForm');
+    const dateInput = document.getElementById('dateInput');
+    const aktivInput = document.getElementById('aktivInput');
+    const novyeInput = document.getElementById('novyeInput');
+    const vbrosyInput = document.getElementById('vbrosyInput');
+    const predlogiInput = document.getElementById('predlogiInput');
+    const soglasyInput = document.getElementById('soglasyInput');
+    const lidiInput = document.getElementById('lidiInput');
+    const depozityInput = document.getElementById('depozityInput');
+    const managerInput = document.getElementById('managerInput');
+    const reportError = document.getElementById('reportError');
+    const reportSuccess = document.getElementById('reportSuccess');
+    const reportList = document.getElementById('reportList');
+    const reportTableBody = document.getElementById('reportTableBody');
+
+    // Устанавливаем max для даты — сегодня
+    function setMaxDate() {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.setAttribute('max', today);
+        dateInput.value = today;
     }
+    setMaxDate();
 
-    document.getElementById("loginForm").addEventListener("submit", async function(e) {
-        e.preventDefault();
-        const username = document.getElementById("username").value;
-        const password = document.getElementById("password").value;
-
-        const res = await fetch("/token", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
-        });
-
-        if (res.ok) {
-            const data = await res.json();
-            localStorage.setItem("token", data.access_token);
+    // Авторизация
+    loginBtn.addEventListener('click', async () => {
+        loginError.textContent = "";
+        const username = loginInput.value.trim();
+        const password = passwordInput.value.trim();
+        if (!username || !password) {
+            loginError.textContent = "Введите логин и пароль";
+            return;
+        }
+        try {
+            const response = await fetch('/token', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    username,
+                    password
+                })
+            });
+            if (!response.ok) {
+                const data = await response.json();
+                loginError.textContent = data.detail || "Ошибка входа";
+                return;
+            }
+            const data = await response.json();
+            accessToken = data.access_token;
+            currentUser = username;
             loginScreen.style.display = "none";
             workScreen.style.display = "flex";
-            nicknameInput.focus();
-        } else {
-            alert("❌ Неверный логин или пароль");
+            profileBtn.style.display = "inline-block";
+
+            // Если admin, показываем отчеты
+            if (currentUser === "admin") {
+                reportList.style.display = "block";
+                loadReports();
+                tabReports.style.display = "inline-block";
+            } else {
+                tabReports.style.display = "inline-block";
+                reportList.style.display = "none";
+            }
+        } catch (e) {
+            loginError.textContent = "Ошибка сети";
         }
     });
 
-    async function checkNickname() {
-        const nickname = nicknameInput.value.trim();
-        if (!nickname) return;
+    // Переключение вкладок
+    tabCheck.addEventListener('click', () => {
+        tabCheck.classList.add('active');
+        tabReports.classList.remove('active');
+        tabCheckContent.classList.add('active');
+        tabReportsContent.classList.remove('active');
+        reportError.textContent = "";
+        reportSuccess.textContent = "";
+    });
+    tabReports.addEventListener('click', () => {
+        tabReports.classList.add('active');
+        tabCheck.classList.remove('active');
+        tabReportsContent.classList.add('active');
+        tabCheckContent.classList.remove('active');
+        statusText.textContent = "Введите ник";
+        historyBox.style.display = "none";
+    });
 
-        const token = localStorage.getItem("token");
-        const res = await fetch("/check", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-            body: JSON.stringify({ nicknames: [nickname] })
-        });
+    // Проверка никнейма
+    checkBtn.addEventListener('click', async () => {
+        statusText.textContent = "Проверка...";
+        const nick = nickInput.value.trim();
+        if (!nick) {
+            statusText.textContent = "Введите никнейм";
+            return;
+        }
+        try {
+            const response = await fetch('/check', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                },
+                body: JSON.stringify({ nicknames: [nick] })
+            });
+            if (!response.ok) {
+                statusText.textContent = "Ошибка сервера";
+                return;
+            }
+            const data = await response.json();
+            const res = data.results[0];
+            statusText.textContent = `${res.nickname}: ${res.status}`;
+        } catch (e) {
+            statusText.textContent = "Ошибка сети";
+        }
+    });
 
-        if (res.ok) {
-            const data = await res.json();
-            setStatusMessage(nickname, data.results[0].status);
-            nicknameInput.value = "";
-        } else {
-            alert("❌ Ошибка при проверке ника");
+    // История проверок
+    historyBtn.addEventListener('click', async () => {
+        historyBox.style.display = "block";
+        historyBox.textContent = "Загрузка...";
+        try {
+            const response = await fetch('/history', {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+            if (!response.ok) {
+                historyBox.textContent = "Ошибка загрузки истории";
+                return;
+            }
+            const data = await response.json();
+            if (data.length === 0) {
+                historyBox.textContent = "История пуста";
+                return;
+            }
+            historyBox.innerHTML = data.map(line => `<div>${line}</div>`).join('');
+        } catch (e) {
+            historyBox.textContent = "Ошибка сети";
+        }
+    });
+
+    // Отправка отчёта
+    reportForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        reportError.textContent = "";
+        reportSuccess.textContent = "";
+
+        // Валидация даты на клиенте уже есть max, но дополнительно проверим:
+        const selectedDate = new Date(dateInput.value);
+        const now = new Date();
+        now.setHours(0,0,0,0);
+        if (selectedDate > now) {
+            reportError.textContent = "Дата не может быть в будущем";
+            return;
+        }
+
+        const payload = {
+            date: dateInput.value,
+            aktiv: parseInt(aktivInput.value),
+            novye: parseInt(novyeInput.value),
+            vbrosy: parseInt(vbrosyInput.value),
+            predlogi: parseInt(predlogiInput.value),
+            soglasy: parseInt(soglasyInput.value),
+            lidi: parseInt(lidiInput.value),
+            depozity: parseInt(depozityInput.value),
+            manager: managerInput.value.trim()
+        };
+
+        try {
+            const response = await fetch('/report', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) {
+                const data = await response.json();
+                reportError.textContent = data.detail || "Ошибка отправки отчёта";
+                return;
+            }
+            reportSuccess.textContent = "Отчёт успешно отправлен";
+            reportForm.reset();
+            setMaxDate();
+
+            if (currentUser === "admin") {
+                loadReports();
+            }
+        } catch (e) {
+            reportError.textContent = "Ошибка сети";
+        }
+    });
+
+    // Загрузка отчётов (только для admin)
+    async function loadReports() {
+        try {
+            const response = await fetch('/reports', {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+            if (!response.ok) {
+                reportList.style.display = "none";
+                return;
+            }
+            const data = await response.json();
+            if (data.length === 0) {
+                reportTableBody.innerHTML = '<tr><td colspan="10">Отчётов нет</td></tr>';
+                return;
+            }
+            reportTableBody.innerHTML = data.map(r => `
+                <tr>
+                    <td>${r.date}</td>
+                    <td>${r.manager}</td>
+                    <td>${r.aktiv}</td>
+                    <td>${r.novye}</td>
+                    <td>${r.vbrosy}</td>
+                    <td>${r.predlogi}</td>
+                    <td>${r.soglasy}</td>
+                    <td>${r.lidi}</td>
+                    <td>${r.depozity}</td>
+                    <td>${r.timestamp}</td>
+                </tr>
+            `).join('');
+        } catch (e) {
+            reportList.style.display = "none";
         }
     }
 
-    document.getElementById("checkBtn").addEventListener("click", checkNickname);
-    nicknameInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            checkNickname();
-        }
-    });
-
-    document.getElementById("historyBtn").addEventListener("click", async () => {
-        const token = localStorage.getItem("token");
-        const res = await fetch("/history", { headers: { "Authorization": `Bearer ${token}` } });
-
-        if (res.ok) {
-            const data = await res.json();
-            historyBox.innerHTML = data
-                .map(item => {
-                    let color = "";
-                    if (item.includes("Ник занят")) {
-                        color = "red";
-                    } else if (item.includes("Не найдено")) {
-                        color = "limegreen";
-                    }
-                    return `<div style="color:${color};">${item}</div>`;
-                })
-                .join("");
-            historyBox.style.display = "block";
-        } else {
-            alert("❌ Ошибка при получении истории");
-        }
-    });
 </script>
 
 </body>
