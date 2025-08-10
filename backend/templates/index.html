@@ -1,1 +1,244 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AurumTrade</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Экран входа */
+        .login-screen {
+            height: 100vh;
+            background: linear-gradient(135deg, #1cb5e0, #000851);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+        }
+        .login-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            width: 320px;
+            text-align: center;
+            backdrop-filter: blur(8px);
+        }
+        .login-box input {
+            width: 90%;
+            padding: 12px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 8px;
+            outline: none;
+            font-size: 1rem;
+        }
+        .login-box button {
+            width: 95%;
+            padding: 12px;
+            background-color: #00d4ff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+        .login-box button:hover {
+            background-color: #00aacc;
+        }
+
+        /* Рабочая зона */
+        .work-screen {
+            height: 100vh;
+            background-color: #0b0e11;
+            color: #f0b90b;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        .header {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        .main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .status-message {
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-icon {
+            font-size: 1.6rem;
+        }
+        .nickname-input {
+            width: 60%;
+            padding: 15px;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            border: 1px solid #f0b90b;
+            outline: none;
+            background-color: #1e2329;
+            color: white;
+        }
+        .buttons {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 12px 20px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .btn-check {
+            background-color: #f0b90b;
+            color: #0b0e11;
+        }
+        .btn-check:hover {
+            background-color: #d9a308;
+        }
+        .btn-history {
+            background-color: #1e2329;
+            color: #f0b90b;
+            border: 1px solid #f0b90b;
+        }
+        .btn-history:hover {
+            background-color: #2a2f35;
+        }
+        .history-box {
+            margin-top: 20px;
+            background-color: #1e2329;
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 60%;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Экран входа -->
+<div id="loginScreen" class="login-screen">
+    <h1>AurumTrade</h1>
+    <div class="login-box">
+        <form id="loginForm">
+            <input type="text" id="username" placeholder="Логин" required>
+            <input type="password" id="password" placeholder="Пароль" required>
+            <button type="submit">Войти</button>
+        </form>
+    </div>
+</div>
+
+<!-- Рабочая зона -->
+<div id="workScreen" class="work-screen" style="display:none;">
+    <div class="header">AurumTrade</div>
+    <div class="main-area">
+        <div id="statusMessage" class="status-message"></div>
+        <input type="text" id="nickname" class="nickname-input" placeholder="Введите ник">
+        <div class="buttons">
+            <button id="checkBtn" class="btn btn-check">Проверить</button>
+            <button id="historyBtn" class="btn btn-history">История</button>
+        </div>
+        <div id="history" class="history-box" style="display:none;"></div>
+    </div>
+</div>
+
+<script>
+    const loginScreen = document.getElementById("loginScreen");
+    const workScreen = document.getElementById("workScreen");
+    const historyBox = document.getElementById("history");
+    const statusMessage = document.getElementById("statusMessage");
+
+    function setStatusMessage(nickname, status) {
+        if (status.includes("Ник занят")) {
+            statusMessage.innerHTML = `<span class="status-icon" style="color:red;">❌</span><span style="color:red;">${nickname}: ${status}</span>`;
+        } else {
+            statusMessage.innerHTML = `<span class="status-icon" style="color:limegreen;">✅</span><span style="color:limegreen;">${nickname}: ${status}</span>`;
+        }
+    }
+
+    document.getElementById("loginForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+
+        const res = await fetch("/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
+        });
+
+        if (res.ok) {
+            const data = await res.json();
+            localStorage.setItem("token", data.access_token);
+            loginScreen.style.display = "none";
+            workScreen.style.display = "flex";
+        } else {
+            alert("❌ Неверный логин или пароль");
+        }
+    });
+
+    document.getElementById("checkBtn").addEventListener("click", async () => {
+        const nickname = document.getElementById("nickname").value.trim();
+        if (!nickname) return;
+
+        const token = localStorage.getItem("token");
+        const res = await fetch("/check", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+            body: JSON.stringify({ nicknames: [nickname] })
+        });
+
+        if (res.ok) {
+            const data = await res.json();
+            setStatusMessage(nickname, data.results[0].status);
+            document.getElementById("nickname").value = "";
+        } else {
+            alert("❌ Ошибка при проверке ника");
+        }
+    });
+
+    document.getElementById("historyBtn").addEventListener("click", async () => {
+        const token = localStorage.getItem("token");
+        const res = await fetch("/history", { headers: { "Authorization": `Bearer ${token}` } });
+
+        if (res.ok) {
+            const data = await res.json();
+            historyBox.innerHTML = data
+                .map(item => {
+                    let color = "";
+                    if (item.includes("Ник занят")) {
+                        color = "red";
+                    } else if (item.includes("Не найдено")) {
+                        color = "limegreen";
+                    }
+                    return `<div style="color:${color};">${item}</div>`;
+                })
+                .join("");
+            historyBox.style.display = "block";
+        } else {
+            alert("❌ Ошибка при получении истории");
+        }
+    });
+</script>
+
+</body>
+</html>
 
