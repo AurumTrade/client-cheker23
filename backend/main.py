@@ -1,18 +1,17 @@
-from fastapi import FastAPI, Request, Depends, HTTPException, Body
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, Request, Depends, HTTPException, Form
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from typing import List, Optional
-from datetime import datetime, timedelta, date
-from pydantic import BaseModel, Field
+from datetime import datetime, timedelta
+from pydantic import BaseModel
 import jwt
 import os
 
 app = FastAPI()
 
-# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -21,11 +20,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Шаблоны
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
-# JWT
 SECRET_KEY = "your_secret_key"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -33,7 +30,6 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
 
-# Пользователи
 fake_users = {
     "admin": {
         "username": "admin",
@@ -44,20 +40,27 @@ fake_users = {
         "username": "admin1",
         "hashed_password": pwd_context.hash("12345"),
         "history": []
-    },
-    "1535": {
-        "username": "1535",
-        "hashed_password": pwd_context.hash("12345"),
-        "history": []
     }
 }
 
 taken_nicks = set()
 global_history = []
 
-# Новая структура отчетов
-reports = []  # каждый отчет — словарь с полями из запроса
+# ====== Добавляем хранение отчетов ======
+reports = []
 
+# ====== Отчётная модель ======
+class Report(BaseModel):
+    date: str
+    aktiv: str
+    new: str
+    vbros: str
+    predlogi: str
+    soglasy: str
+    lidi: str
+    depozity: str
+    manager: str
+    user: Optional[str] = None  # кто отправил
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
@@ -132,42 +135,32 @@ def get_history(user=Depends(get_current_user)):
             for item in sorted(user["history"], key=lambda x: x["time"], reverse=True)
         ]
 
-# Модель для отчёта
-class ReportRequest(BaseModel):
-    date: date = Field(..., description="Дата отчёта")
-    aktiv: int = Field(..., ge=0)
-    novye: int = Field(..., ge=0)
-    vbrosy: int = Field(..., ge=0)
-    predlogi: int = Field(..., ge=0)
-    soglasy: int = Field(..., ge=0)
-    lidi: int = Field(..., ge=0)
-    depozity: int = Field(..., ge=0)
-    manager: str
+# ====== Новый эндпоинт — отправка отчёта ======
+@app.post("/submit_report")
+def submit_report(report: Report, user=Depends(get_current_user)):
+    # Валидация даты
+    try:
+        datetime.strptime(report.date, "%Y-%m-%d")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Неверный формат даты. Используйте ГГГГ-ММ-ДД")
+    
+    report.user = user["username"]
+    reports.append(report.dict())
+    return {"detail": "Отчёт успешно сохранён"}
 
-@app.post("/report")
-def add_report(report: ReportRequest, user=Depends(get_current_user)):
-    # Проверяем дату не в будущем
-    if report.date > date.today():
-        raise HTTPException(status_code=400, detail="Дата не может быть в будущем")
-    entry = {
-        "date": report.date.strftime("%Y-%m-%d"),
-        "aktiv": report.aktiv,
-        "novye": report.novye,
-        "vbrosy": report.vbrosy,
-        "predlogi": report.predlogi,
-        "soglasy": report.soglasy,
-        "lidi": report.lidi,
-        "depozity": report.depozity,
-        "manager": report.manager,
-        "user": user["username"],
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    }
-    reports.append(entry)
-    return {"detail": "Отчет добавлен"}
-
+# ====== Просмотр своих отчётов ======
 @app.get("/reports")
 def get_reports(user=Depends(get_current_user)):
+    if user["username"] == "admin":
+        # admin видит все отчёты
+        return reports
+    else:
+        # остальные видят только свои
+        return [r for r in reports if r["user"] == user["username"]]
+
+# ====== Просмотр всех отчётов (только admin) ======
+@app.get("/admin_reports")
+def get_admin_reports(user=Depends(get_current_user)):
     if user["username"] != "admin":
-        raise HTTPException(status_code=403, detail="Доступ запрещен")
-    sorted_reports = sorted(reports, key=lambda x: (x["date"], x["manager"]), reverse=True)
-    return sorted_reports
+        raise HTTPException(status_code=403, detail="Доступ запрещён")
+    return reports
