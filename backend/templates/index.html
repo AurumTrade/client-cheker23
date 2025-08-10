@@ -9,12 +9,24 @@
             margin: 0;
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0b0e11;
+        }
+
+        /* Общий стиль заголовка */
+        .header {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #f0b90b;
+            padding: 15px 20px;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
 
         /* Экран входа */
         .login-screen {
             height: 100vh;
-            background: linear-gradient(135deg, #1cb5e0, #000851);
+            background-color: #0b0e11;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -22,27 +34,29 @@
             color: white;
         }
         .login-box {
-            background: rgba(255, 255, 255, 0.1);
+            background-color: #1e2329;
             padding: 30px;
             border-radius: 15px;
             width: 320px;
             text-align: center;
-            backdrop-filter: blur(8px);
+            border: 1px solid #f0b90b;
         }
         .login-box input {
             width: 90%;
             padding: 12px;
             margin: 10px 0;
-            border: none;
+            border: 1px solid #f0b90b;
             border-radius: 8px;
             outline: none;
             font-size: 1rem;
+            background-color: #0b0e11;
+            color: white;
         }
         .login-box button {
             width: 95%;
             padding: 12px;
-            background-color: #00d4ff;
-            color: white;
+            background-color: #f0b90b;
+            color: #0b0e11;
             border: none;
             border-radius: 8px;
             font-size: 1.1rem;
@@ -50,7 +64,7 @@
             margin-top: 5px;
         }
         .login-box button:hover {
-            background-color: #00aacc;
+            background-color: #d9a308;
         }
 
         /* Рабочая зона */
@@ -61,10 +75,6 @@
             display: flex;
             flex-direction: column;
             padding: 20px;
-        }
-        .header {
-            font-size: 1.2rem;
-            font-weight: bold;
         }
         .main-area {
             flex: 1;
@@ -136,7 +146,7 @@
 
 <!-- Экран входа -->
 <div id="loginScreen" class="login-screen">
-    <h1>AurumTrade</h1>
+    <div class="header">AurumTrade</div>
     <div class="login-box">
         <form id="loginForm">
             <input type="text" id="username" placeholder="Логин" required>
@@ -165,6 +175,7 @@
     const workScreen = document.getElementById("workScreen");
     const historyBox = document.getElementById("history");
     const statusMessage = document.getElementById("statusMessage");
+    const nicknameInput = document.getElementById("nickname");
 
     function setStatusMessage(nickname, status) {
         if (status.includes("Ник занят")) {
@@ -190,13 +201,14 @@
             localStorage.setItem("token", data.access_token);
             loginScreen.style.display = "none";
             workScreen.style.display = "flex";
+            nicknameInput.focus();
         } else {
             alert("❌ Неверный логин или пароль");
         }
     });
 
-    document.getElementById("checkBtn").addEventListener("click", async () => {
-        const nickname = document.getElementById("nickname").value.trim();
+    async function checkNickname() {
+        const nickname = nicknameInput.value.trim();
         if (!nickname) return;
 
         const token = localStorage.getItem("token");
@@ -209,9 +221,17 @@
         if (res.ok) {
             const data = await res.json();
             setStatusMessage(nickname, data.results[0].status);
-            document.getElementById("nickname").value = "";
+            nicknameInput.value = "";
         } else {
             alert("❌ Ошибка при проверке ника");
+        }
+    }
+
+    document.getElementById("checkBtn").addEventListener("click", checkNickname);
+    nicknameInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            checkNickname();
         }
     });
 
@@ -241,4 +261,3 @@
 
 </body>
 </html>
-
