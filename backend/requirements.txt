@@ -1,1 +1,8 @@
+fastapi
+uvicorn
+jinja2
+python-multipart
+passlib[bcrypt]
+PyJWT
+itsdangerous
 
