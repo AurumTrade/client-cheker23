@@ -1,19 +1,18 @@
-from fastapi import FastAPI, Request, Depends, HTTPException
+from fastapi import FastAPI, Request, Depends, HTTPException, Body
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
-from typing import List
-from datetime import datetime, timedelta
-from pydantic import BaseModel
+from typing import List, Optional
+from datetime import datetime, timedelta, date
+from pydantic import BaseModel, Field
 import jwt
 import os
 
-# === Создание приложения ===
 app = FastAPI()
 
-# === CORS ===
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -22,20 +21,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# === HTML шаблоны ===
+# Шаблоны
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
-# === JWT настройки ===
+# JWT
 SECRET_KEY = "your_secret_key"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-# === Пароли ===
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
 
-# === База пользователей ===
+# Пользователи
 fake_users = {
     "admin": {
         "username": "admin",
@@ -46,16 +44,21 @@ fake_users = {
         "username": "admin1",
         "hashed_password": pwd_context.hash("12345"),
         "history": []
+    },
+    "1535": {
+        "username": "1535",
+        "hashed_password": pwd_context.hash("12345"),
+        "history": []
     }
 }
 
-# === Глобальная база занятых ников ===
 taken_nicks = set()
-
-# === Глобальная история по всем пользователям ===
 global_history = []
 
-# === Утилиты ===
+# Новая структура отчетов
+reports = []  # каждый отчет — словарь с полями из запроса
+
+
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
@@ -79,8 +82,6 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         return fake_users[username]
     except:
         raise HTTPException(status_code=401, detail="Invalid token")
-
-# === Роуты ===
 
 @app.get("/", response_class=HTMLResponse)
 def get_home(request: Request):
@@ -120,16 +121,53 @@ def check_nicknames(data: NicknameRequest, user=Depends(get_current_user)):
 @app.get("/history")
 def get_history(user=Depends(get_current_user)):
     if user["username"] == "admin":
-        # Вернуть всю глобальную историю для admin
         sorted_history = sorted(global_history, key=lambda x: x["time"], reverse=True)
         return [
             f"{item['time']} — {item['user']} — {item['nickname']} — {item['status']}"
             for item in sorted_history
         ]
     else:
-        # Только личную историю для остальных
         return [
             f"{item['time']} — {item['nickname']} — {item['status']}"
             for item in sorted(user["history"], key=lambda x: x["time"], reverse=True)
         ]
 
+# Модель для отчёта
+class ReportRequest(BaseModel):
+    date: date = Field(..., description="Дата отчёта")
+    aktiv: int = Field(..., ge=0)
+    novye: int = Field(..., ge=0)
+    vbrosy: int = Field(..., ge=0)
+    predlogi: int = Field(..., ge=0)
+    soglasy: int = Field(..., ge=0)
+    lidi: int = Field(..., ge=0)
+    depozity: int = Field(..., ge=0)
+    manager: str
+
+@app.post("/report")
+def add_report(report: ReportRequest, user=Depends(get_current_user)):
+    # Проверяем дату не в будущем
+    if report.date > date.today():
+        raise HTTPException(status_code=400, detail="Дата не может быть в будущем")
+    entry = {
+        "date": report.date.strftime("%Y-%m-%d"),
+        "aktiv": report.aktiv,
+        "novye": report.novye,
+        "vbrosy": report.vbrosy,
+        "predlogi": report.predlogi,
+        "soglasy": report.soglasy,
+        "lidi": report.lidi,
+        "depozity": report.depozity,
+        "manager": report.manager,
+        "user": user["username"],
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+    reports.append(entry)
+    return {"detail": "Отчет добавлен"}
+
+@app.get("/reports")
+def get_reports(user=Depends(get_current_user)):
+    if user["username"] != "admin":
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
+    sorted_reports = sorted(reports, key=lambda x: (x["date"], x["manager"]), reverse=True)
+    return sorted_reports
