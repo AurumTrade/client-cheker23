@@ -5,252 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>AurumTrade</title>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0b0e11;
-            color: #f0b90b;
-        }
-        .header {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #f0b90b;
-            padding: 15px 20px;
-            position: relative;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header .title {
-            user-select: none;
-        }
-        .header .profile-btn {
-            cursor: pointer;
-            background-color: #f0b90b;
-            color: #0b0e11;
-            border: none;
-            border-radius: 8px;
-            padding: 8px 15px;
-            font-weight: bold;
-            transition: background-color 0.3s ease;
-        }
-        .header .profile-btn:hover {
-            background-color: #d9a308;
-        }
-        /* Экраны */
-        #loginScreen, #workScreen {
-            height: 100vh;
-            background-color: #0b0e11;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            color: white;
-        }
-        #loginScreen {
-            display: flex;
-        }
-        #workScreen {
-            display: none;
-            flex-direction: column;
-            padding: 20px;
-        }
-        /* Вкладки */
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .tab {
-            cursor: pointer;
-            padding: 10px 20px;
-            background-color: #1e2329;
-            border-radius: 8px 8px 0 0;
-            border: 1px solid #f0b90b;
-            border-bottom: none;
-            color: #f0b90b;
-            font-weight: bold;
-            user-select: none;
-            transition: background-color 0.3s ease;
-        }
-        .tab.active {
-            background-color: #f0b90b;
-            color: #0b0e11;
-        }
-        .tab:hover:not(.active) {
-            background-color: #2a2f35;
-        }
-        .tab-content {
-            background-color: #1e2329;
-            padding: 20px;
-            border: 1px solid #f0b90b;
-            border-radius: 0 8px 8px 8px;
-            width: 600px;
-            max-width: 90vw;
-            color: #f0b90b;
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
-        /* Форма логина */
-        .login-box {
-            background-color: #1e2329;
-            padding: 30px;
-            border-radius: 15px;
-            width: 320px;
-            text-align: center;
-            border: 1px solid #f0b90b;
-        }
-        .login-box input {
-            width: 90%;
-            padding: 12px;
-            margin: 10px 0;
-            border: 1px solid #f0b90b;
-            border-radius: 8px;
-            outline: none;
-            font-size: 1rem;
-            background-color: #0b0e11;
-            color: white;
-        }
-        .login-box button {
-            width: 95%;
-            padding: 12px;
-            background-color: #f0b90b;
-            color: #0b0e11;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            margin-top: 5px;
-        }
-        .login-box button:hover {
-            background-color: #d9a308;
-        }
-        /* Проверка ников */
-        .status-message {
-            font-size: 1.4rem;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .status-icon {
-            font-size: 1.6rem;
-        }
-        .nickname-input {
-            width: 60%;
-            padding: 15px;
-            font-size: 1.2rem;
-            border-radius: 8px;
-            border: 1px solid #f0b90b;
-            outline: none;
-            background-color: #1e2329;
-            color: white;
-        }
-        .buttons {
-            margin-top: 15px;
-            display: flex;
-            gap: 10px;
-        }
-        .btn {
-            padding: 12px 20px;
-            font-size: 1.1rem;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        .btn-check {
-            background-color: #f0b90b;
-            color: #0b0e11;
-        }
-        .btn-check:hover {
-            background-color: #d9a308;
-        }
-        .btn-history {
-            background-color: #1e2329;
-            color: #f0b90b;
-            border: 1px solid #f0b90b;
-        }
-        .btn-history:hover {
-            background-color: #2a2f35;
-        }
-        .history-box {
-            margin-top: 20px;
-            background-color: #1e2329;
-            padding: 15px;
-            border-radius: 8px;
-            max-width: 60%;
-            width: 100%;
-            max-height: 200px;
-            overflow-y: auto;
-            color: #f0b90b;
-        }
-        /* Отчеты */
-        .report-form label {
-            display: block;
-            margin-top: 10px;
-            font-weight: bold;
-        }
-        .report-form input[type="date"],
-        .report-form input[type="number"],
-        .report-form input[type="text"] {
-            width: 100%;
-            padding: 8px;
-            font-size: 1rem;
-            border-radius: 6px;
-            border: 1px solid #f0b90b;
-            background-color: #0b0e11;
-            color: white;
-            margin-top: 5px;
-        }
-        .report-form button {
-            margin-top: 15px;
-            background-color: #f0b90b;
-            color: #0b0e11;
-            border: none;
-            padding: 12px 20px;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            width: 100%;
-        }
-        .report-form button:hover {
-            background-color: #d9a308;
-        }
-        .report-list {
-            margin-top: 20px;
-            max-height: 300px;
-            overflow-y: auto;
-            background-color: #1e2329;
-            border-radius: 8px;
-            padding: 10px;
-            color: #f0b90b;
-            font-size: 0.95rem;
-            width: 600px;
-            max-width: 90vw;
-        }
-        .report-list table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .report-list th, .report-list td {
-            border: 1px solid #f0b90b;
-            padding: 6px 10px;
-            text-align: center;
-        }
-        .report-list th {
-            background-color: #f0b90b;
-            color: #0b0e11;
-        }
-        /* Ошибки */
-        .error-message {
-            color: #f44336;
-            margin-top: 8px;
-            font-weight: bold;
-        }
+        /* (взято из твоего стиля) */
+        body { margin:0; padding:0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#0b0e11; color:#f0b90b; }
+        .header{font-size:1.2rem;font-weight:bold;color:#f0b90b;padding:15px 20px;position:relative;display:flex;justify-content:space-between;align-items:center;}
+        .header .title{user-select:none;}
+        .header .profile-btn{cursor:pointer;background:#f0b90b;color:#0b0e11;border:none;border-radius:8px;padding:8px 15px;font-weight:bold;}
+        #loginScreen,#workScreen{height:100vh;background:#0b0e11;display:flex;justify-content:center;align-items:center;flex-direction:column;color:white;}
+        #loginScreen{display:flex;} #workScreen{display:none;flex-direction:column;padding:20px;}
+        .tabs{display:flex;gap:10px;margin-bottom:15px;}
+        .tab{cursor:pointer;padding:10px 20px;background:#1e2329;border-radius:8px 8px 0 0;border:1px solid #f0b90b;border-bottom:none;color:#f0b90b;font-weight:bold;}
+        .tab.active{background:#f0b90b;color:#0b0e11;}
+        .tab-content{background:#1e2329;padding:20px;border:1px solid #f0b90b;border-radius:0 8px 8px 8px;width:600px;max-width:90vw;color:#f0b90b;display:none;}
+        .tab-content.active{display:block;}
+        .login-box{background:#1e2329;padding:30px;border-radius:15px;width:320px;text-align:center;border:1px solid #f0b90b;}
+        .login-box input{width:90%;padding:12px;margin:10px 0;border:1px solid #f0b90b;border-radius:8px;background:#0b0e11;color:white;}
+        .login-box button{width:95%;padding:12px;background:#f0b90b;color:#0b0e11;border:none;border-radius:8px;font-size:1.1rem;cursor:pointer;margin-top:5px;}
+        .status-message{font-size:1.4rem;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+        .nickname-input{width:60%;padding:15px;font-size:1.2rem;border-radius:8px;border:1px solid #f0b90b;background:#1e2329;color:white;}
+        .buttons{margin-top:15px;display:flex;gap:10px;}
+        .btn{padding:12px 20px;font-size:1.1rem;border:none;border-radius:8px;cursor:pointer;}
+        .btn-check{background:#f0b90b;color:#0b0e11;}
+        .btn-history{background:#1e2329;color:#f0b90b;border:1px solid #f0b90b;}
+        .history-box{margin-top:20px;background:#1e2329;padding:15px;border-radius:8px;max-width:60%;width:100%;max-height:200px;overflow-y:auto;color:#f0b90b;}
+        .report-form label{display:block;margin-top:10px;font-weight:bold;}
+        .report-form input[type="date"], .report-form input[type="number"], .report-form input[type="text"]{width:100%;padding:8px;font-size:1rem;border-radius:6px;border:1px solid #f0b90b;background:#0b0e11;color:white;margin-top:5px;}
+        .report-form button{margin-top:15px;background:#f0b90b;color:#0b0e11;border:none;padding:12px 20px;font-weight:bold;border-radius:8px;cursor:pointer;font-size:1.1rem;width:100%;}
+        .report-list{margin-top:20px;max-height:300px;overflow-y:auto;background:#1e2329;border-radius:8px;padding:10px;color:#f0b90b;font-size:0.95rem;width:600px;max-width:90vw;}
+        table{width:100%;border-collapse:collapse;}
+        th,td{border:1px solid #f0b90b;padding:6px 10px;text-align:center;}
+        th{background:#f0b90b;color:#0b0e11;}
+        .error-message{color:#f44336;margin-top:8px;font-weight:bold;}
     </style>
 </head>
 <body>
@@ -349,14 +133,12 @@
     const loginError = document.getElementById('loginError');
     const profileBtn = document.getElementById('profileBtn');
 
-    // Для проверки ников
     const nickInput = document.getElementById('nickInput');
     const checkBtn = document.getElementById('checkBtn');
     const historyBtn = document.getElementById('historyBtn');
     const statusText = document.getElementById('statusText');
     const historyBox = document.getElementById('historyBox');
 
-    // Для отчетов
     const tabCheck = document.getElementById('tabCheck');
     const tabReports = document.getElementById('tabReports');
     const tabCheckContent = document.getElementById('tabCheckContent');
@@ -377,7 +159,6 @@
     const reportList = document.getElementById('reportList');
     const reportTableBody = document.getElementById('reportTableBody');
 
-    // Устанавливаем max для даты — сегодня
     function setMaxDate() {
         const today = new Date().toISOString().split('T')[0];
         dateInput.setAttribute('max', today);
@@ -385,7 +166,6 @@
     }
     setMaxDate();
 
-    // Авторизация
     loginBtn.addEventListener('click', async () => {
         loginError.textContent = "";
         const username = loginInput.value.trim();
@@ -398,10 +178,7 @@
             const response = await fetch('/token', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({
-                    username,
-                    password
-                })
+                body: new URLSearchParams({ username, password })
             });
             if (!response.ok) {
                 const data = await response.json();
@@ -415,7 +192,6 @@
             workScreen.style.display = "flex";
             profileBtn.style.display = "inline-block";
 
-            // Если admin, показываем отчеты
             if (currentUser === "admin") {
                 reportList.style.display = "block";
                 loadReports();
@@ -429,7 +205,6 @@
         }
     });
 
-    // Переключение вкладок
     tabCheck.addEventListener('click', () => {
         tabCheck.classList.add('active');
         tabReports.classList.remove('active');
@@ -447,7 +222,6 @@
         historyBox.style.display = "none";
     });
 
-    // Проверка никнейма
     checkBtn.addEventListener('click', async () => {
         statusText.textContent = "Проверка...";
         const nick = nickInput.value.trim();
@@ -458,10 +232,7 @@
         try {
             const response = await fetch('/check', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
                 body: JSON.stringify({ nicknames: [nick] })
             });
             if (!response.ok) {
@@ -476,15 +247,12 @@
         }
     });
 
-    // История проверок
     historyBtn.addEventListener('click', async () => {
         historyBox.style.display = "block";
         historyBox.textContent = "Загрузка...";
         try {
             const response = await fetch('/history', {
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`
-                }
+                headers: { 'Authorization': `Bearer ${accessToken}` }
             });
             if (!response.ok) {
                 historyBox.textContent = "Ошибка загрузки истории";
@@ -501,13 +269,11 @@
         }
     });
 
-    // Отправка отчёта
     reportForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         reportError.textContent = "";
         reportSuccess.textContent = "";
 
-        // Валидация даты на клиенте уже есть max, но дополнительно проверим:
         const selectedDate = new Date(dateInput.value);
         const now = new Date();
         now.setHours(0,0,0,0);
@@ -518,23 +284,20 @@
 
         const payload = {
             date: dateInput.value,
-            aktiv: parseInt(aktivInput.value),
-            novye: parseInt(novyeInput.value),
-            vbrosy: parseInt(vbrosyInput.value),
-            predlogi: parseInt(predlogiInput.value),
-            soglasy: parseInt(soglasyInput.value),
-            lidi: parseInt(lidiInput.value),
-            depozity: parseInt(depozityInput.value),
+            aktiv: parseInt(aktivInput.value) || 0,
+            novye: parseInt(novyeInput.value) || 0,
+            vbrosy: parseInt(vbrosyInput.value) || 0,
+            predlogi: parseInt(predlogiInput.value) || 0,
+            soglasy: parseInt(soglasyInput.value) || 0,
+            lidi: parseInt(lidiInput.value) || 0,
+            depozity: parseInt(depozityInput.value) || 0,
             manager: managerInput.value.trim()
         };
 
         try {
             const response = await fetch('/report', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
                 body: JSON.stringify(payload)
             });
             if (!response.ok) {
@@ -554,13 +317,10 @@
         }
     });
 
-    // Загрузка отчётов (только для admin)
     async function loadReports() {
         try {
             const response = await fetch('/reports', {
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`
-                }
+                headers: { 'Authorization': `Bearer ${accessToken}` }
             });
             if (!response.ok) {
                 reportList.style.display = "none";
@@ -589,7 +349,6 @@
             reportList.style.display = "none";
         }
     }
-
 </script>
 
 </body>
