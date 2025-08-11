@@ -4,8 +4,8 @@ from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
-from typing import List
 from datetime import datetime, timedelta
+from typing import List
 from pydantic import BaseModel
 import jwt
 import os
@@ -43,21 +43,17 @@ fake_users = {
         "history": [],
         "reports": []
     },
-    "admin1": {
-        "username": "admin1",
+    "#1535": {
+        "username": "#1535",
         "hashed_password": pwd_context.hash("12345"),
         "history": [],
         "reports": []
     }
 }
 
-# === Глобальная база занятых ников ===
+# === Глобальная база ников и отчётов ===
 taken_nicks = set()
-
-# === Глобальная история по всем пользователям ===
 global_history = []
-
-# === Глобальные отчёты ===
 global_reports = []
 
 # === Утилиты ===
@@ -85,8 +81,11 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
     except:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-# === Роуты ===
+# === Модели ===
+class NicknameRequest(BaseModel):
+    nicknames: List[str]
 
+# === Роуты ===
 @app.get("/", response_class=HTMLResponse)
 def get_home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
@@ -98,10 +97,6 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
         raise HTTPException(status_code=401, detail="Неверный логин или пароль")
     access_token = create_access_token(data={"sub": form_data.username})
     return {"access_token": access_token, "token_type": "bearer"}
-
-# ====== Проверка ников ======
-class NicknameRequest(BaseModel):
-    nicknames: List[str]
 
 @app.post("/check")
 def check_nicknames(data: NicknameRequest, user=Depends(get_current_user)):
@@ -137,10 +132,10 @@ def get_history(user=Depends(get_current_user)):
             for item in sorted(user["history"], key=lambda x: x["time"], reverse=True)
         ]
 
-# ====== Отчёты ======
+# === Форма отчётов ===
 @app.get("/reports", response_class=HTMLResponse)
-def reports_page(request: Request, user=Depends(get_current_user)):
-    return templates.TemplateResponse("reports.html", {"request": request, "user": user})
+def get_report_form(request: Request, user=Depends(get_current_user)):
+    return templates.TemplateResponse("report_form.html", {"request": request, "user": user})
 
 @app.post("/report", response_class=HTMLResponse)
 def send_report(
@@ -169,13 +164,10 @@ def send_report(
     }
     user["reports"].append(report_entry)
     global_reports.append(report_entry)
-    return templates.TemplateResponse(
-        "report_success.html",
-        {"request": request, "message": "Отчёт успешно отправлен!"}
-    )
+    return templates.TemplateResponse("report_success.html", {"request": request, "report": report_entry})
 
-@app.get("/all_reports")
-def all_reports(user=Depends(get_current_user)):
+@app.get("/all-reports", response_class=HTMLResponse)
+def get_all_reports(request: Request, user=Depends(get_current_user)):
     if user["username"] != "admin":
-        raise HTTPException(status_code=403, detail="Доступ запрещён")
-    return global_reports
+        raise HTTPException(status_code=403, detail="Нет доступа")
+    return templates.TemplateResponse("all_reports.html", {"request": request, "reports": global_reports})
